@@ -12,11 +12,14 @@
 
 //#include "LEDMatrix.h"
 
+#define BOARD_WIDTH			32
+#define BOARD_HEIGHT		32
+
 #define PADDLE_WIDTH		6
 #define PADDLE_HEIGHT		2
 
-#define PLAYER_ONE_PADDLE_ROW 21
-#define PLAYER_TWO_PADDLE_ROW 5
+#define PLAYER_ONE_PADDLE_ROW 25 
+#define PLAYER_TWO_PADDLE_ROW 4
 
 #define BALL_SIDE_LENGTH	2
 
@@ -425,9 +428,9 @@ void SetBallRow(uint8_t row){
 			}
 }
 
-bool CollisionCheck(uint8_t paddleCol, uint8_t paddleRow, uint8_t ballRow, uint8_t ballCol){
+bool Collision(uint8_t paddleCol, uint8_t paddleRow, uint8_t ballRow, uint8_t ballCol){
 	//ball is in the middle of the board
-	if (ballRow > 5 || ballRow < 21)
+	if (ballRow > (PLAYER_ONE_PADDLE_ROW + PADDLE_HEIGHT) || ballRow < PLAYER_TWO_PADDLE_ROW)
 		return false;
 	
 	//check columns
@@ -440,7 +443,7 @@ bool CollisionCheck(uint8_t paddleCol, uint8_t paddleRow, uint8_t ballRow, uint8
 	if ((ballRow > (paddleRow + PADDLE_HEIGHT)) || ((ballRow + BALL_SIDE_LENGTH) < paddleRow))
 		return false;
 	
-	//ball must be colliding
+	//ball must be colliding 
 	return true;
 	
 	
@@ -449,13 +452,68 @@ bool CollisionCheck(uint8_t paddleCol, uint8_t paddleRow, uint8_t ballRow, uint8
 
 bool PointScored(uint8_t paddleCol, uint8_t paddleRow, uint8_t ballRow, uint8_t ballCol){
 	
+	//check if ball is in valid area for potential score
+	if (ballRow <= (PLAYER_ONE_PADDLE_ROW + PADDLE_HEIGHT) || ballRow >= PLAYER_TWO_PADDLE_ROW){
+		//ball is in valid row
+		
+		if ((ballCol <= (paddleCol + PADDLE_WIDTH)) || ((ballCol + BALL_SIDE_LENGTH) <= paddleCol)){
+			//ball is in valid column
+			
+			if ((ballRow <= (paddleRow + PADDLE_HEIGHT)) || ((ballRow + BALL_SIDE_LENGTH) >= paddleRow)){
+				//ball is in valid row
+				
+				return true;
+			}
+		}
+	}
+	
+	return false;
+	
+}
+
+void PlayerOneScored(){
 	
 }
 
 
+void PlayerTwoScored(){
+	
+}
+
 
 void UpdateFrame(){
 	
+	
+	//determine if ball is colliding
+	//check player 1 paddle collision
+	if (Collision(PlayerOnePaddleCol, PLAYER_ONE_PADDLE_ROW, BallRow, BallCol)){
+		//collision has occurred
+	}
+	
+	
+	//check player 2 paddle collision
+	if (Collision(PlayerTwoPaddleCol, PLAYER_TWO_PADDLE_ROW, BallRow, BallCol)){
+		//collision has occured
+	}
+	
+	
+	//collision has not occurred, it is possible that a point has been scored
+	
+	//point scored on player one
+	if (PointScored(PlayerOnePaddleCol, PLAYER_ONE_PADDLE_ROW, BallRow, BallCol)){
+		//Therefore PlayerTwo has Scored
+		
+		PlayerTwoScored();
+	}
+	
+	//point scored on player two
+	if (PointScored(PlayerTwoPaddleCol, PLAYER_TWO_PADDLE_ROW, BallRow, BallCol)){
+		//therefore Player One has scored
+		PlayerOneScored();
+	}
+	
+	//no collisions have been detected and no points have been scored 
+	//move paddles accordingly
 	if (PlayerOneGoingRight){
 		PlayerOnePaddleCol += PlayerOnePaddleSpeed;	
 	} else {
@@ -468,6 +526,7 @@ void UpdateFrame(){
 		PlayerTwoPaddleCol -= PlayerTwoPaddleSpeed;
 	}
 	
+	//move balls accordingly
 	if (BallGoingDown){
 		BallRow += BallYSpeed;	
 	} else {
@@ -487,8 +546,6 @@ void UpdateFrame(){
 
 
 void RedrawScreen(){
-	//reset matrix before drawing appropriate items
-	//MatrixToBlack();
 	
 	SetPlayerOnePaddleCol(PlayerOnePaddleCol);
 	SetPlayerTwoPaddleCol(PlayerTwoPaddleCol);
@@ -496,6 +553,13 @@ void RedrawScreen(){
 	SetBallCol(BallCol);
 	SetBallRow(BallRow);
 	
+}
+
+void PlayPong(void){
+	while (1){
+		UpdateFrame();
+		_delay_ms(150);
+	}
 }
 
 //startup test to make sure ball is playable
