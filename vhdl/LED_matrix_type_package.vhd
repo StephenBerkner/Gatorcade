@@ -4,21 +4,29 @@ use IEEE.NUMERIC_STD.all;
 
 package LED_matrix_type_package is
 
-	subtype LED is unsigned(7 downto 0);
+	--data type for brightness of the red, green, or blue LED in each coordinate of the matrix
+	subtype SingleColorLED is unsigned(7 downto 0);
 
-	type LED_line is array (0 to 31) of LED;
+	--data type for the row of LEDs
+	type LEDRow is array (0 to 31) of SingleColorLED;
 
-	type LED_array is array (0 to 31) of LED_line;
+
+	--data type for the LED matrix containing 32x32 LEDs of a single color
+	type SingleColorLEDMatrix is array (0 to 31) of LEDRow;
 	
-	type RGB_LED_array is array (0 to 2) of LED_array;
+	--data type for the LED matrix containing 32x32 RGB LEDs
+	type RGBLEDMatrix is array (0 to 2) of SingleColorLEDMatrix;
 	
 	
 	--this needs to be changed to 27 for a base of 5
-	type P1_Values is array (0 to 27) of RGB_LED_array; 
+	--array of frames for player 1 paddle
+	type P1_Values is array (0 to 27) of RGBLEDMatrix; 
 
-	type P2_Values is array (0 to 27) of RGB_LED_array;
+	--array of frames for player 2 paddle
+	type P2_Values is array (0 to 27) of RGBLEDMatrix;
 
-	type Ball_Values is array (0 to 503) of RGB_LED_array; 
+	--array of frames for ball
+	type Ball_Values is array (0 to 503) of RGBLEDMatrix; 
 
 	
 
