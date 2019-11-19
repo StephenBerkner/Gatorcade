@@ -10,6 +10,7 @@
 #include <util/delay.h>
 
 #include "Pong.h"
+#include "MazeRunner.h"
 #include "Menu.h"
 #include "USART.h"
 
@@ -25,8 +26,10 @@ int main(void)
 	
 	//intialize menu
 	MenuInit();
+	
 	//run Menu
 	MenuSelect();
+	
 	//run pong game
 	//PlayPong();
 

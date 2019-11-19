@@ -50,17 +50,18 @@ void MenuSelect(){
 				PORTA &= ~0x40;
 			}
 			
-			_delay_ms(30);
+			//_delay_ms(30);
 		}
 	
 		//select game mode
 		if ( (((PlayerOneUSARTData & 0x80) == 0x80) || ((PlayerTwoUSARTData & 0x80) == 0x80) ) != 0x00){
 			PORTA &= ~0x20;
 			
+			//_delay_ms(600);		
 			break;
 		}	
 		
-		_delay_ms(300);
+		_delay_ms(400);
 	}
 	
 	//game sel true for first game (pong)
@@ -70,6 +71,13 @@ void MenuSelect(){
 	
 		//play pong game
 		PlayPong();
+	} else {
+		
+		//initialize ports and maze runner variables appropriately
+		MazeRunnerInit();
+		
+		//play Maze Runner game
+		PlayMazeRunner();
 	}
 	
 }
