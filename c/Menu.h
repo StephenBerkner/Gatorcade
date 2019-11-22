@@ -10,10 +10,11 @@
 #define MENU_H_
 
 #include <stdbool.h>
+#include "Audio.h"
 
 bool GameSel = true;
-uint8_t testVal = 0x00;
-bool testBool = false;
+
+bool neutralAcheived = false;
 
 void MenuInit(){
 	
@@ -25,6 +26,10 @@ void MenuInit(){
 	//stay in menu mode until game selected
 	PORTA |= 0x20;
 	
+	//initialize audio
+	AudioInit();
+	
+	
 }
 
 //used to determine which game is 
@@ -33,12 +38,16 @@ void MenuSelect(){
 	_delay_ms(2000);
 	
 	while (1){
-		testVal = PlayerOneUSARTData&0x70;
-		testBool = ((PlayerOneUSARTData & 0x70) == 0x30) || ((PlayerOneUSARTData & 0x70) == 0x70) || ((PlayerTwoUSARTData & 0x70) == 0x30) || ((PlayerTwoUSARTData & 0x70) == 0x70);
-		//move select up and down to determine game
 		
+		//make sure joystick is neutral to ensure one switch per joystick movement
+		if (((PlayerOneUSARTData) & 0x70 == 0x00) || ((PlayerTwoUSARTData & 0x70) == 0x00) ){
+			neutralAcheived = true;
+		}
 
-		if ((((PlayerOneUSARTData & 0x70) == 0x30) || ((PlayerOneUSARTData & 0x70) == 0x70) || ((PlayerTwoUSARTData & 0x70) == 0x30) || ((PlayerTwoUSARTData & 0x70) == 0x70)) != 0x00){
+
+		//move select up and down to determine game
+
+		if ( ((((PlayerOneUSARTData & 0x70) == 0x30) || ((PlayerOneUSARTData & 0x70) == 0x70) || ((PlayerTwoUSARTData & 0x70) == 0x30) || ((PlayerTwoUSARTData & 0x70) == 0x70)) != 0x00) && neutralAcheived){
 			//PORTA ^= 0x40;
 			//GameSel ^= GameSel;
 			if (GameSel){
@@ -50,6 +59,7 @@ void MenuSelect(){
 				PORTA &= ~0x40;
 			}
 			
+			neutralAcheived = false;
 			//_delay_ms(30);
 		}
 	
@@ -63,6 +73,9 @@ void MenuSelect(){
 		
 		_delay_ms(400);
 	}
+	
+	//play menu select audio
+	PlayMenuSelectAudio();
 	
 	//game sel true for first game (pong)
 	if (GameSel){

@@ -6,22 +6,22 @@ use work.LEDMatrixDataTypes.all;
 
 entity GatorcadeDisplay is
 
-    --top level port for interfacing directly with Adafruit 32x32 LED matrix
-    --a Cyclone III FPGA will be used
+    --display driver for interfacing directly with Adafruit 32x32 LED matrix
+    --a Cyclone III FPGA will be used to interface with the LED Matrix
     Port (
-    	clk : in  STD_LOGIC;
-	    matrixClk : out  STD_LOGIC;
-        r1 : out  STD_LOGIC;
-        g1 : out  STD_LOGIC;
-        b1 : out  STD_LOGIC;
-        r2 : out  STD_LOGIC;
-        g2 : out  STD_LOGIC;
-        b2 : out  STD_LOGIC;
-        oe : out  STD_LOGIC;
-        latch : out  STD_LOGIC;
-        addr_out : out  STD_LOGIC_VECTOR (3 downto 0);
-        data : in RGBLEDMatrix;
-		rst : in  STD_LOGIC
+    	clk 		: in  	std_logic;
+	    matrixClk 	: out  	std_logic;
+        r1 			: out  	std_logic;
+        g1 			: out  	std_logic;
+        b1 			: out  	std_logic;
+        r2 			: out  	std_logic;
+        g2 			: out  	std_logic;
+        b2 			: out  	std_logic;
+        oe 			: out  	std_logic;
+        latch 		: out  	std_logic;
+        addr_out 	: out  	std_logic_vector (3 downto 0);
+        data 		: in 	RGBLEDMatrix;
+		rst 		: in 	std_logic
 	);
 end GatorcadeDisplay;
 
