@@ -61,10 +61,8 @@ uint8_t BallYSpeed;
 bool BallGoingDown;
 bool BallGoingRight;
 
+bool GameResuming = false;
 
-//debugging
-bool p1CollisionOccuring = false;
-bool p2CollisionOccuring = true;
 
 void PongInit(){
 	
@@ -84,8 +82,8 @@ void PongInit(){
 	
 	//place ball in player one's area
 	//change this to random or something more complex later
-	BallRow = 0x0F;// (HEIGHT + BALL_SIDE_LENGTH) / 2;
-	BallCol = 0x0F;//WIDTH / 4 + BALL_SIDE_LENGTH / 2;
+	BallRow = 0x0A;// (HEIGHT + BALL_SIDE_LENGTH) / 2;
+	BallCol = 0x0A;//WIDTH / 4 + BALL_SIDE_LENGTH / 2;
 	
 	BallXSpeed = 0x01;
 	BallYSpeed = 0x01;
@@ -271,11 +269,13 @@ void SetPlayerOnePaddleCol(uint8_t col){
 
 void DisablePlayerOnePaddle(){
 	//set select to undefined value (0x1E)
+	//clear port
 	PORTA &= ~0x1F;
 	
-	PORTA |= 0x1C;
+	//PORTA |= 0x;
 	
 }
+
 
 //set Player 2 paddle column
 void SetPlayerTwoPaddleCol(uint8_t col){
@@ -429,8 +429,9 @@ void SetPlayerTwoPaddleCol(uint8_t col){
 void DisablePlayerTwoPaddle(){
 	
 	//set to undefined value (0x1E) 
+	//clear port
 	PORTB &= ~0x4F;
-	PORTB |= 0x4C;
+	//PORTB |= 0x4C;
 }
 
 
@@ -744,8 +745,12 @@ void SetBallRow(uint8_t row){
 }
 
 void DisableBall(){
+	
+	PORTC &= ~0xC3;
+	PORTD &= ~0xFA;
+	
 	//set col to undefined value (0x1F)
-	PORTC |= 0xC3;
+	PORTC |= 0x03;
 	PORTD |= 0x80;
 	
 	//set row to undefined value (0x1F)
@@ -755,10 +760,6 @@ void DisableBall(){
 
 
 bool Collision(uint8_t paddleCol, uint8_t paddleRow, uint8_t ballRow, uint8_t ballCol){
-	//ball is in the middle of the board
-	//if (ballRow > 0 || ballRow < 25) //  (PLAYER_ONE_PADDLE_ROW + PADDLE_HEIGHT) || ballRow < PLAYER_TWO_PADDLE_ROW)
-		//return false;
-	//
 	//check columns
 	//if ball is inside of paddle
 	if ((ballCol <= (paddleCol + PADDLE_WIDTH) && ((ballCol + BALL_SIDE_LENGTH) >= paddleCol))){
@@ -775,54 +776,11 @@ bool Collision(uint8_t paddleCol, uint8_t paddleRow, uint8_t ballRow, uint8_t ba
 	}
 		return false;
 	
-	//check rows
-	//if ball is outside of paddle row
-	//if ((ballRow > (paddleRow + PADDLE_HEIGHT)) || ((ballRow + BALL_SIDE_LENGTH) < paddleRow))
-		//return false;
-	
-	//ball must be colliding 
-	//return true;
-	
-	
-	
-	
-	
 }
 
 bool PointScored(uint8_t paddleCol, uint8_t paddleRow, uint8_t ballRow, uint8_t ballCol){
-	
-	////check if ball is in valid area for potential score
-	//if (ballRow == 0x00 || ballRow == 0x14){//if (ballRow <= (PLAYER_ONE_PADDLE_ROW + PADDLE_HEIGHT) || ballRow >= PLAYER_TWO_PADDLE_ROW){
-		////ball is in valid row
-		//
-		//if ((ballCol >= (paddleCol + PADDLE_WIDTH)) || ((ballCol + BALL_SIDE_LENGTH) >= paddleCol)){
-			////ball is in valid column
-			//
-			////if ((ballRow <= (paddleRow + PADDLE_HEIGHT)) || ((ballRow + BALL_SIDE_LENGTH) >= paddleRow)){
-				////ball is in valid row
-				//
-				//return true;
-			////}
-		//}
-	//}
-	//
-	//return false;
-	//if (ballRow != 0x00 || ballRow != 0x01 || ballRow != 0x10 || ballRow != 0x11 )
-		//return false;
-	//
-		//if ((ballCol <= (paddleCol + PADDLE_WIDTH) && ((ballCol + BALL_SIDE_LENGTH) >= paddleCol))){
-			//if (paddleRow == 0){
-			//
-				//if (ballRow >= 0x11){
-					//return false;
-				//}
-			//} else {
-				//if (ballRow = 0x00 || ballRow ==  0x01){
-					//return false;
-				//}
-			//}
-	//}
-		//return true;
+	//check paddle row and ball row to see if ball has advanced past paddle
+	//if the ball is past the paddle a point has been scored
 	if (paddleRow != 0){
 		if (ballRow <= 0x00)
 			return true;
@@ -835,6 +793,68 @@ bool PointScored(uint8_t paddleCol, uint8_t paddleRow, uint8_t ballRow, uint8_t 
 	
 	return false;
 
+}
+
+void DisplayScores(){
+	
+	//disable pong components
+	DisableBall();
+	DisablePlayerOnePaddle();
+	DisablePlayerTwoPaddle();
+	
+	//turn on score board frame
+	PORTC |= 0xC3;
+	PORTD |= 0xFA;
+	
+	
+	
+	//set player one score display
+	
+	switch (PlayerOneScore){
+		case 0x00:
+			PORTA &= ~0x1F;
+			PORTA |= 0x1B;
+			break;
+		case 0x01:
+			PORTA &= ~0x1F;
+			PORTA |= 0x1C;
+			break;
+		case 0x02:
+			PORTA &= ~0x1F;
+			PORTA |= 0x1D;
+			break;
+		case 0x03:
+			PORTA &= ~0x1F;
+			PORTA |= 0x1E;
+			break;
+	}
+	
+	
+	//set player two score display
+	
+	switch(PlayerTwoScore){
+		case 0x00:
+			PORTB &= ~0x4F;
+			PORTB |= 0x4B;
+			break;
+		case 0x01:
+			PORTB &= ~0x4F;
+			PORTB |= 0x4C;
+			break;
+		case 0x02:
+			PORTB &= ~0x4F;
+			PORTB |= 0x4D;
+			break;
+		case 0x03:
+			PORTB &= ~0x4F;
+			PORTB |= 0x4E;
+			break;
+	}
+	
+	
+	_delay_ms(2500);
+			
+	
 }
 
 void PlayerOneScored(){
@@ -850,18 +870,29 @@ void PlayerOneScored(){
 	//turn on P1 Point Screen
 	PORTA |= 0x1F;
 	
-	_delay_ms(3000);
+	
+	BallCol = 0x0A;
+	BallRow = 0x0A;
 	
 	//if sudden death display sudden death screen
 	if (PlayerOneScore == 2 && PlayerTwoScore == 2){
 		suddenDeath = true;
 		DisplaySuddenDeathScreen();
+		
+		for (int i = 0; i < 9; i++){
+			PlaySuddenDeathAudio();
+			_delay_ms(70);
+		}	
+	} else {
+
+		_delay_ms(3000);
+	
 	}
 		
-	
-	BallCol = 0x08;
-	BallRow = 0x08;
-	
+	//game will be resuming after point is scored
+	//add a delay so players know where the ball
+	//is before resuming play
+	GameResuming = true;
 	
 	
 }
@@ -882,16 +913,28 @@ void PlayerTwoScored(){
 	PORTB |= 0x4F;
 	
 	
-	_delay_ms(3000);
+	BallCol = 0x0A;
+	BallRow = 0x0A;
 	
 	//if sudden death display sudden death screen
 	if (PlayerOneScore == 2 && PlayerTwoScore == 2){
 		suddenDeath = true;
 		DisplaySuddenDeathScreen();
+		
+		for (int i = 0; i < 9; i++){
+			PlaySuddenDeathAudio();
+			_delay_ms(70);
+		}	
+		
+	} else {
+		_delay_ms(3000);
 	}
 	
-	BallCol = 0x08;
-	BallRow = 0x04;
+	//game will be resuming after point is scored
+	//add a delay so players know where the ball
+	//is before resuming play
+	GameResuming = true;
+
 }
 
 //add logic here
@@ -902,22 +945,11 @@ void DisplaySuddenDeathScreen(){
 
 void RedrawScreen(){
 	
-	
-	
+	//set paddle location appropriately	
 	SetPlayerOnePaddleCol(PlayerOnePaddleCol);
 	SetPlayerTwoPaddleCol(PlayerTwoPaddleCol);
 	
-	//if (BallCol > 27){
-		////BallCol = 0;
-		//BallGoingRight = !BallGoingRight;
-	//}
-	//
-	
-	//if (BallRow > 17){
-		//BallGoingDown = !BallGoingDown;
-		//BallRow = 0;
-	//}
-	
+	//set ball location appropriately
 	SetBallCol(BallCol);
 	SetBallRow(BallRow);
 	
@@ -945,9 +977,6 @@ void UpdateFrame(){
 	}
 	
 	
-	//debug
-	p1CollisionOccuring = Collision(PlayerOnePaddleCol, 0, BallRow, BallCol);
-	p2CollisionOccuring = Collision(PlayerTwoPaddleCol, 20, BallRow, BallCol);
 	
 	//check player 1 paddle collision
 	if (Collision(PlayerOnePaddleCol, 0, BallRow, BallCol)){
@@ -979,15 +1008,22 @@ void UpdateFrame(){
 	if (PointScored(PlayerOnePaddleCol, 0, BallRow, BallCol)){
 		//Therefore PlayerTwo has Scored
 		
+		PlayGamePointAudio();
 		//BallGoingDown = !BallGoingDown;
 		PlayerTwoScored();
+		
+		DisplayScores();
+		
 	}
 	
 	//point scored on player two
 	if (PointScored(PlayerTwoPaddleCol, 20, BallRow, BallCol)){
 		//therefore Player One has scored
 		//BallGoingDown = !BallGoingDown;
+		PlayGamePointAudio();
 		PlayerOneScored();
+		
+		DisplayScores();
 	}
 	
 	//no collisions have been detected and no points have been scored 
@@ -1003,40 +1039,40 @@ void UpdateFrame(){
 			PlayerOnePaddleCol = 0x02;
 			break;
 		case 0x02:
-			PlayerOnePaddleCol = 0x05;
+			PlayerOnePaddleCol = 0x03;
 			break;
 		case 0x03:
-			PlayerOnePaddleCol = 0x07;
+			PlayerOnePaddleCol = 0x05;
 			break;
 		case 0x04:
-			PlayerOnePaddleCol = 0x09;
+			PlayerOnePaddleCol = 0x07;
 			break;
 		case 0x05:
-			PlayerOnePaddleCol = 0x0B;
+			PlayerOnePaddleCol = 0x09;
 			break;
 		case 0x06:
-			PlayerOnePaddleCol = 0x0D;
+			PlayerOnePaddleCol = 0x0B;
 			break;
 		case 0x07:
-			PlayerOnePaddleCol = 0x0F;
+			PlayerOnePaddleCol = 0x0D;
 			break;
 		case 0x08:
-			PlayerOnePaddleCol = 0x11;
+			PlayerOnePaddleCol = 0x0F;
 			break;
 		case 0x09:
-			PlayerOnePaddleCol = 0x13;
+			PlayerOnePaddleCol = 0x11;
 			break;
 		case 0x0A:
-			PlayerOnePaddleCol = 0x15;
+			PlayerOnePaddleCol = 0x14;
 			break;
 		case 0x0B:
-			PlayerOnePaddleCol = 0x17;
+			PlayerOnePaddleCol = 0x16;
 			break;
 		case 0x0C:
-			PlayerOnePaddleCol = 0x18;
+			PlayerOnePaddleCol = 0x17;  
 			break;
 		case 0x0D:
-			PlayerOnePaddleCol = 0x19;
+			PlayerOnePaddleCol = 0x18;
 			break;
 		default:
 			break;
@@ -1044,6 +1080,7 @@ void UpdateFrame(){
 	}
 
 	//set player two paddle position
+	
 	switch (PlayerTwoUSARTData & 0x0F)
 	{
 		case 0x00:
@@ -1053,40 +1090,40 @@ void UpdateFrame(){
 			PlayerTwoPaddleCol = 0x02;
 			break;
 		case 0x02:
-			PlayerTwoPaddleCol = 0x05;
+			PlayerTwoPaddleCol = 0x03;
 			break;
 		case 0x03:
-			PlayerTwoPaddleCol = 0x07;
+			PlayerTwoPaddleCol = 0x05;
 			break;
 		case 0x04:
-			PlayerTwoPaddleCol = 0x09;
+			PlayerTwoPaddleCol = 0x07;
 			break;
 		case 0x05:
-			PlayerTwoPaddleCol = 0x0B;
+			PlayerTwoPaddleCol = 0x09;
 			break;
 		case 0x06:
-			PlayerTwoPaddleCol = 0x0D;
+			PlayerTwoPaddleCol = 0x0B;
 			break;
 		case 0x07:
-			PlayerTwoPaddleCol = 0x0F;
+			PlayerTwoPaddleCol = 0x0D;
 			break;
 		case 0x08:
-			PlayerTwoPaddleCol = 0x11;
+			PlayerTwoPaddleCol = 0x0F;
 			break;
 		case 0x09:
-			PlayerTwoPaddleCol = 0x13;
+			PlayerTwoPaddleCol = 0x11;
 			break;
 		case 0x0A:
-			PlayerTwoPaddleCol = 0x15;
+			PlayerTwoPaddleCol = 0x14;
 			break;
 		case 0x0B:
-			PlayerTwoPaddleCol = 0x17;
+			PlayerTwoPaddleCol = 0x16;
 			break;
 		case 0x0C:
-			PlayerTwoPaddleCol = 0x18;
+			PlayerTwoPaddleCol = 0x17;
 			break;
 		case 0x0D:
-			PlayerTwoPaddleCol = 0x19;
+			PlayerTwoPaddleCol = 0x18;
 			break;
 		default:
 			break;
@@ -1119,6 +1156,10 @@ void PlayPong(void){
 	_delay_ms(300);
 	
 	while (1){
+		if (GameResuming){
+			_delay_ms(1000);
+			GameResuming = false;
+		}
 		UpdateFrame();
 		
 		//go back to main menu
@@ -1145,6 +1186,8 @@ void PlayPong(void){
 		}
 	}
 	
+	//_delay_ms(17);
+	
 	//play game over audio
 	PlayGameOverAudio();
 	
@@ -1170,88 +1213,7 @@ void StartupTest(){
 			SetPlayerOnePaddleCol(col);
 			SetPlayerTwoPaddleCol(col);
 			_delay_ms(60);
-			//
-////set player one paddle position
-	////use bitmask
-	//switch (PlayerOneUSARTData & 0x0F) {
-		//case 0x00:
-			//PlayerOnePaddleCol = 0x00;
-			//break;
-		//case 0x01:
-			//PlayerOnePaddleCol = 0x02;
-			//break;
-		//case 0x02:
-			//PlayerOnePaddleCol = 0x04;
-			//break;
-		//case 0x03:
-			//PlayerOnePaddleCol = 0x06;
-			//break;
-		//case 0x04:
-			//PlayerOnePaddleCol = 0x08;
-			//break;
-		//case 0x05:
-			//PlayerOnePaddleCol = 0x0A;
-			//break;
-		//case 0x06:
-			//PlayerOnePaddleCol = 0x0C;
-			//break;
-		//case 0x07:
-			//PlayerOnePaddleCol = 0x0E;
-			//break;
-		//case 0x08:
-			//PlayerOnePaddleCol = 0x10;
-			//break;
-		//case 0x09:
-			//PlayerOnePaddleCol = 0x12;
-			//break;
-		//case 0x0A:
-			//PlayerOnePaddleCol = 0x14;
-			//break;
-		//default:
-			//break;
-		//
-	//}
-//
-	////set player two paddle position
-	//switch (PlayerTwoUSARTData & 0x0F)
-	//{
-		//case 0x00:
-			//PlayerTwoPaddleCol = 0x00;
-			//break;
-		//case 0x01:
-			//PlayerTwoPaddleCol = 0x02;
-			//break;
-		//case 0x02:
-			//PlayerTwoPaddleCol = 0x04;
-			//break;
-		//case 0x03:
-			//PlayerTwoPaddleCol = 0x06;
-			//break;
-		//case 0x04:
-			//PlayerTwoPaddleCol = 0x08;
-			//break;
-		//case 0x05:
-			//PlayerTwoPaddleCol = 0x0A;
-			//break;
-		//case 0x06:
-			//PlayerTwoPaddleCol = 0x0C;
-			//break;
-		//case 0x07:
-			//PlayerTwoPaddleCol = 0x0E;
-			//break;
-		//case 0x08:
-			//PlayerTwoPaddleCol = 0x10;
-			//break;
-		//case 0x09:
-			//PlayerTwoPaddleCol = 0x12;
-			//break;
-		//case 0x0A:
-			//PlayerTwoPaddleCol = 0x14;
-			//break;
-		//default:
-			//break;
-		//
-	//}
+		
 		}
 	}
 	
