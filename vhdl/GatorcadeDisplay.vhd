@@ -21,7 +21,7 @@ entity GatorcadeDisplay is
         b2 						: out  	std_logic;
         outputEnable 			: out  	std_logic;
         latch 					: out  	std_logic;
-        matrixAddressLines 	: out  	std_logic_vector (3 downto 0)
+        matrixAddressLines 		: out  	std_logic_vector (3 downto 0)
         
 	);
 end GatorcadeDisplay;
